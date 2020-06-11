@@ -1,4 +1,4 @@
-package schema_index
+package schema
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package schema_index
+package schema
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
+	"github/guanhg/syncDB-search/errorlog"
 	"log"
 	"reflect"
 	"strconv"
@@ -205,7 +205,7 @@ func (s *SchemaIndex) BuildFieldMapping() string {
 	mapping["properties"] = fieldMap  // ES7.0 对于先构建索引，再构建mapping，只需要'propertyies'
 	//mapping["mappings"] = map[string]map[string]map[string]string{"properties": fieldMap}
 	bytes, err := json.Marshal(mapping)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 	jonson := string(bytes)
 
 	return jonson

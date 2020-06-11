@@ -91,8 +91,7 @@ func (ctx *Context) Query(stmt string, para ...interface{}) ([] map[string] inte
 
 func rows2map(rows *sql.Rows) ([] map[string] interface{}, error){
 	defer func() {
-		err := rows.Close()
-		if err != nil {
+		if err := rows.Close(); err!=nil {
 			panic(err)
 		}
 	}()

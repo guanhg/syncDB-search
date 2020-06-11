@@ -1,4 +1,4 @@
-package errorLog
+package errorlog
 
 func CheckErr(err error, msg ...string)  {
 	if err!=nil{

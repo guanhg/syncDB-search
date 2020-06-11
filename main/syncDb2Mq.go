@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
+	"github/guanhg/syncDB-search/errorlog"
 	"log"
 	"time"
 )
@@ -38,9 +38,9 @@ func main() {
 		for i :=range rows{  // 发送到mq
 			fmt.Println(rows[i])
 			body, err := json.Marshal(rows[i])
-			errorLog.CheckErr(err)
+			errorlog.CheckErr(err)
 			err = rq.Publish(rqOptions.Exchange, rqOptions.RouteKey, false, false, amqp.Publishing{Body: body})
-			errorLog.CheckErr(err)
+			errorlog.CheckErr(err)
 		}
 	}
 }

@@ -1,10 +1,10 @@
-package schema_index
+package schema
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/olivere/elastic/v7"
-	"github/guanhg/syncDB-search/errorLog"
+	"github/guanhg/syncDB-search/errorlog"
 )
 
 type SchemaSearch struct {
@@ -19,6 +19,11 @@ func NewSchemaSearch() *SchemaSearch {
 	return search
 }
 
+/*
+* 数据库表的索引检索
+* q 查询对象
+* indexName 索引名，可以用正则表示多个索引，如"sm_record_2017,sm_record_2018"或"sm_record_*"或"*"等
+ */
 func Search(q elastic.Query, indexName string) *SchemaSearch{
 	s := NewSchemaSearch()
 	s.Index(indexName).Query(q)
@@ -26,18 +31,14 @@ func Search(q elastic.Query, indexName string) *SchemaSearch{
 	return s
 }
 
-/*
-* 数据库表的索引检索
-* q 查询对象
-* indexName 索引名，可以用正则表示多个索引，如"sm_record_2017,sm_record_2018"或"sm_record_*"或"*"等
-*/
+// es最后返回结果
 func (s *SchemaSearch) Result() map[string]interface{}{
 	ctx := context.Background()
 
 	res, err := s.Do(ctx)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 	total, err := s.Count.Do(ctx)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 
 	ret := make(map[string]interface{})
 	ret["total"] = total
@@ -47,7 +48,7 @@ func (s *SchemaSearch) Result() map[string]interface{}{
 		for _, hit := range res.Hits.Hits {
 			v := make(map[string]interface{})
 			err := json.Unmarshal(hit.Source, &v)
-			errorLog.CheckErr(err)
+			errorlog.CheckErr(err)
 			hits = append(hits, v)
 		}
 	}

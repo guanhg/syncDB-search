@@ -7,8 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olivere/elastic/v7"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
-	schema "github/guanhg/syncDB-search/schema-index"
+	"github/guanhg/syncDB-search/errorlog"
+	schema "github/guanhg/syncDB-search/schema"
+	"log"
 	"net/http"
 )
 
@@ -18,13 +19,14 @@ func OverviewHandle(c *gin.Context) {
 	defer func() {
 		if err := recover(); err!=nil{
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			log.Println(err)
 		}
 	}()
 	userId := c.Param("id")
 	stmt := "select * from sm_user_profit where user_id=?"
 	ctx := cache.GetDefaultContext()
 	rows, err := ctx.Query(stmt, userId)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 
 	playTimes := elastic.NewSumAggregation().Field("play_times")
 	netEarn := elastic.NewSumAggregation().Field("net_earn")
@@ -40,7 +42,7 @@ func OverviewHandle(c *gin.Context) {
 
 		q := elastic.NewTermQuery("up_id", row["id"])
 		result, err := schema.Search(q, "sm_record_*").Size(0).Aggregation("NetEarn", netEarnAgg).Aggregation("PlayTimes", playTimesAgg).Do(context.Background())
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 
 		NetEarnResult, _ := result.Aggregations["NetEarn"].MarshalJSON()
 		PlayTimesResult, _ := result.Aggregations["PlayTimes"].MarshalJSON()
@@ -49,7 +51,7 @@ func OverviewHandle(c *gin.Context) {
 
 		NetEarn := make(map[string]interface{})
 		err = json.Unmarshal(NetEarnResult, &NetEarn)
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 		for _, b := range NetEarn["buckets"].([]interface{}){
 			item := b.(map[string]interface{})
 			period := item["key"].(string)
@@ -59,7 +61,7 @@ func OverviewHandle(c *gin.Context) {
 
 		PlayTimes := make(map[string]interface{})
 		err = json.Unmarshal(PlayTimesResult, &PlayTimes)
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 		for _, b := range PlayTimes["buckets"].([]interface{}){
 			item := b.(map[string]interface{})
 			period := item["key"].(string)

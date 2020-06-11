@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
-	schema "github/guanhg/syncDB-search/schema-index"
+	"github/guanhg/syncDB-search/errorlog"
+	schema "github/guanhg/syncDB-search/schema"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	// sm
 	table := schema.SchemaIndex{Name: "sm_record_2017", Context: cache.GetContext("default")}
 	err :=table.CreateIndexIfNotExist()
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 	table.IndexOne(1)
 	//fmt.Println(table.BuildFieldMapping())
 

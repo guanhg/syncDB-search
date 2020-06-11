@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olivere/elastic/v7"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
-	schema "github/guanhg/syncDB-search/schema-index"
+	"github/guanhg/syncDB-search/errorlog"
+	schema "github/guanhg/syncDB-search/schema"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -17,6 +18,7 @@ func TopTrackHandle(c *gin.Context){
 	defer func() {
 		if err := recover(); err!=nil{
 			c.JSON(http.StatusInternalServerError, gin.H{"message": "server error"})
+			log.Println(err)
 		}
 	}()
 	startDate := c.Query("startDate")  // 格式 2018-10-01 00:00:00
@@ -40,7 +42,7 @@ func TopTrackHandle(c *gin.Context){
 	stmt := "select id from sm where created_datetime > ? and created_datetime < ?"
 	ctx := cache.GetDefaultContext()
 	rows, err := ctx.Query(stmt, startDate, endDate)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 
 	var ids []int64
 	for _, r := range rows {
@@ -61,12 +63,12 @@ func TopTrackHandle(c *gin.Context){
 
 		// size=0意味着不索引Doc，只做聚合计算
 		result, err := schema.Search(q, "sm_record_*").Size(0).Aggregation("TopTrack", disAgg).Do(context.Background())
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 		aggResult, _ := result.Aggregations["TopTrack"].MarshalJSON()
 
 		TopTrack := make(map[string]interface{})
 		err = json.Unmarshal(aggResult, &TopTrack)
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 
 		total := getRmbExchangeCurrency(ctx, id)
 		for _, b := range TopTrack["buckets"].([]interface{}){
@@ -91,7 +93,7 @@ func TopTrackHandle(c *gin.Context){
 func getRmbExchangeCurrency(ctx *cache.Context, smId int64) float32  {
 	stmt := "select currency_type, total_currency from sm where id = ?"
 	rows, err := ctx.Query(stmt, smId)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 	if rows==nil {
 		panic("Can't find statement record")
 	}
@@ -104,7 +106,7 @@ func getRmbExchangeCurrency(ctx *cache.Context, smId int64) float32  {
 	} else {
 		stmt = "select cash_buying_rate as rate from sm_exchange_rate where target = ? order by id desc limit 1"
 		rows, err = ctx.Query(stmt, target)
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 		if rows==nil{
 			panic("Not exist exchange-ratio: " + target.(string) + " -> RMB")
 		}

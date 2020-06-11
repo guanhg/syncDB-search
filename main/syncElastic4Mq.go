@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
-	schema "github/guanhg/syncDB-search/schema-index"
+	"github/guanhg/syncDB-search/errorlog"
+	"github/guanhg/syncDB-search/schema"
 	"log"
 )
 
@@ -33,7 +33,7 @@ func syncUpdate(numRoutine int){
 			}()
 			fmt.Printf("[--> Starting %d] \n", ser)
 			msgs, err := rq.Consume(rqOptions.Queue, "", false, false, false, false, nil)
-			errorLog.CheckErr(err)
+			errorlog.CheckErr(err)
 			for msg := range msgs {
 				rq.OnMessage(msg, DoConsume)
 			}
@@ -47,7 +47,7 @@ func syncUpdate(numRoutine int){
 func DoConsume(msg amqp.Delivery)  {
 	rowMap := make(map[string]interface{})
 	err := json.Unmarshal(msg.Body, &rowMap)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 
 	tableName := rowMap["table"].(string)
 	event := int(rowMap["event"].(float64))
@@ -67,7 +67,7 @@ func DoConsume(msg amqp.Delivery)  {
 		err = table.DeleteIndexIfExist()
 	}
 
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 }
 
 

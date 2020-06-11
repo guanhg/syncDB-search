@@ -3,7 +3,7 @@ package cache
 import (
 	"github.com/streadway/amqp"
 	"github/guanhg/syncDB-search/config"
-	"github/guanhg/syncDB-search/errorLog"
+	"github/guanhg/syncDB-search/errorlog"
 	"log"
 )
 
@@ -14,10 +14,10 @@ type MqContext struct {
 func NewMqContext() *MqContext {
 	ctx := new(MqContext)
 	conn, err := amqp.Dial(config.JsonConfig.AMQPUrl)
-	errorLog.CheckErr(err, "could not establish connection with RabbitMQ: ")
+	errorlog.CheckErr(err, "could not establish connection with RabbitMQ: ")
 
 	ch, err := conn.Channel()
-	errorLog.CheckErr(err, "could not open RabbitMQ channel: ")
+	errorlog.CheckErr(err, "could not open RabbitMQ channel: ")
 
 	ctx.Channel = ch
 	return ctx
@@ -25,13 +25,13 @@ func NewMqContext() *MqContext {
 
 func (mc *MqContext)DeclareExchangeQueue(options MqOptions)  {
 	err := mc.ExchangeDeclare(options.Exchange, options.ExchangeType, true, false, false, false, options.ExchangeArgs)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 
 	_, err = mc.QueueDeclare(options.Queue, true, false, false, false, options.QueueArgs)
-	errorLog.CheckErr(err, "error declare queue: ")
+	errorlog.CheckErr(err, "error declare queue: ")
 
 	err = mc.QueueBind(options.Queue, options.RouteKey, options.Exchange, false, options.BindArgs)
-	errorLog.CheckErr(err, "error bind queue-exchange: ")
+	errorlog.CheckErr(err, "error bind queue-exchange: ")
 
 }
 

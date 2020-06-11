@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 )
 
@@ -45,11 +45,17 @@ var (
 )
 
 func LoadJsonFileConfig() *Config {
-	dr, _ := os.Getwd()
-	fmt.Println(dr)
-	jsonFile, e := os.Open("./config/config.json")
+	var jsonFile *os.File
+	var e error
+
+	env := os.Getenv("ACTIVE")
+	if env == "prd" {
+		jsonFile, e = os.Open("./config/config-prd.json")
+	}else{
+		jsonFile, e = os.Open("./config/config.json")
+	}
 	if e != nil {
-		fmt.Println("Can't find the file: config.json", e)
+		log.Println("Can't find the file: config.json", e)
 	}
 	defer jsonFile.Close()
 
@@ -57,7 +63,7 @@ func LoadJsonFileConfig() *Config {
 	cfg := new(Config)
 	err := decoder.Decode(cfg)
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Println("config.json Decoder Error:", err)
 	}
 	return cfg
 }

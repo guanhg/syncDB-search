@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorLog"
+	"github/guanhg/syncDB-search/errorlog"
 	"reflect"
 	"time"
 )
 
 func main() {
-	//testDB()
-	testRedis()
-
+	testDB()
+	//testRedis()
 
 	//forever := make(chan bool)
 	//go testCanal()
@@ -69,11 +68,11 @@ func testMq()  {
 
 	rq.Qos(2, 0, false)
 	msgs, err := rq.Consume(rqOptions.Queue, "", true, false, false, false, nil)
-	errorLog.CheckErr(err)
+	errorlog.CheckErr(err)
 	for msg := range msgs {
 		rowMap := make(map[string]interface{})
 		err = json.Unmarshal(msg.Body, &rowMap)
-		errorLog.CheckErr(err)
+		errorlog.CheckErr(err)
 		fmt.Println("====================\n", rowMap)
 	}
 
