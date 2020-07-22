@@ -8,9 +8,9 @@
 
 2. 编辑config/config.json配置文件
 
-3. 主体文件search.go
+3. 主体文件main/search.go
 
-	go run search.go -m module [paramters]
+	go run main/search.go -m module [paramters]
 
 	目录module中的文件函数是主要执行体
 

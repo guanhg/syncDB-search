@@ -10,7 +10,7 @@
     },
     {
       "drive": "mysql",
-      "name": "dev",
+      "name": "copyright",
       "url": "192.168.0.18:3306",
       "user": "root",
       "password": "root",
@@ -18,7 +18,7 @@
     },
     {
       "drive": "mysql",
-      "name": "coolvox",
+      "name": "coolvox_dev",
       "url": "192.168.0.11:3306",
       "user": "root",
       "password": "root",
