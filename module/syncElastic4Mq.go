@@ -1,4 +1,4 @@
-package main
+package module
 
 import (
 	"encoding/json"
@@ -10,12 +10,8 @@ import (
 	"log"
 )
 
-func main() {
-	syncUpdate(10)
-}
-
 // 多协程同步更新
-func syncUpdate(numRoutine int){
+func SyncElastic4Mq(numRoutine int){
 	rqOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "db_index", Queue: "syncIndex"}
 
 	rq := cache.NewMqContext()

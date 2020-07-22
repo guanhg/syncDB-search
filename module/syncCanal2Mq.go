@@ -1,4 +1,4 @@
-package main
+package module
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func main() {
+func SyncCanal2Mq(regex string) {
 	defer func() {
 		if e:=recover(); e!=nil{
 			log.Printf("[Publishing Error] Routine %v\n", e)
@@ -30,7 +30,7 @@ func main() {
 	rq.DeclareExchangeQueue(rqDeadOptions)
 
 	for  {
-		rows := canal.Get(".*\\..*", 100)
+		rows := canal.Get(regex, 100)
 		if len(rows) <= 0 {
 			time.Sleep(3 * time.Second)
 			continue

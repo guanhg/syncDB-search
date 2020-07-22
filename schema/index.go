@@ -13,8 +13,6 @@ import (
 	"sync"
 )
 
-type MappingString string
-
 type SchemaIndex struct {
 	Name        string         // 数据库表名
 	Context     *cache.Context // 数据库连接
