@@ -12,7 +12,7 @@ type SchemaSearch struct {
 	Count *elastic.CountService
 }
 
-func NewSchemaSearch() *SchemaSearch {
+func buildSchemaSearch() *SchemaSearch {
 	search := new(SchemaSearch)
 	search.SearchService = ElasticClient.Search()
 	search.Count = ElasticClient.Count()
@@ -24,8 +24,8 @@ func NewSchemaSearch() *SchemaSearch {
 * q 查询对象
 * indexName 索引名，可以用正则表示多个索引，如"sm_record_2017,sm_record_2018"或"sm_record_*"或"*"等
  */
-func Search(q elastic.Query, indexName string) *SchemaSearch{
-	s := NewSchemaSearch()
+func NewSearch(q elastic.Query, indexName string) *SchemaSearch{
+	s := buildSchemaSearch()
 	s.Index(indexName).Query(q)
 	s.Count.Index(indexName).Query(q)
 	return s

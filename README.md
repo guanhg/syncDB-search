@@ -17,18 +17,18 @@
 	包括初始化索引，删除索引，重构索引，获取索引mapping，同步canal数据到mq，同步mq数据到es，web应用
 
 ```
--d string
-      (database name)数据库名，init/delete/rebuild/mapping模块必须要的参数
 -m string
       (module)需要调用的执行模块: init/delete/rebuild/mapping/db2mq/es4mq/web
+-t string
+      (table name)表名，init/delete/rebuild/mapping模块必选参数
+-d string
+      (database name)数据库名，init/delete/rebuild/mapping模块必选参数
 -n int
       使用n个协程同步mq数据到es，默认10，es4mq模块可选参数 (default 10)
 -p string
       端口号，默认8080，web模块可选参数 (default "8080")
 -r string
-      (regex)canal获取表的同步数据，canal2mq模块必须要的参数 (default ".*\\..*")
--t string
-      (table name)表名，init/delete/rebuild/mapping模块必须要的参数
+      (regex)canal获取表的同步数据，canal2mq模块必选参数 (default ".*\\..*")
 ```
 
 ```

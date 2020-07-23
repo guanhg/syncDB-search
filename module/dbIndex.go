@@ -37,13 +37,15 @@ func RebuildDbIndex(tableName, dbName string)  {
 }
 
 // 获取索引mapping
-func MappingIndex(tableName, dbName string)  {
+func MappingIndex(tableName, dbName string) map[string]interface{} {
 	checkParam(tableName, dbName)
 
 	mm, err := schema.ElasticClient.GetMapping().Index(tableName).Pretty(true).Do(context.Background())
 	errorlog.CheckErr(err)
 	mj, _ := json.Marshal(mm)
 	fmt.Println(string(mj))
+
+	return mm
 }
 
 // 检测参数

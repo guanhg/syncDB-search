@@ -41,7 +41,7 @@ func OverviewHandle(c *gin.Context) {
 		retTotal += row["recording"].(float32)+row["publishing"].(float32)
 
 		q := elastic.NewTermQuery("up_id", row["id"])
-		result, err := schema.Search(q, "sm_record_*").Size(0).Aggregation("NetEarn", netEarnAgg).Aggregation("PlayTimes", playTimesAgg).Do(context.Background())
+		result, err := schema.NewSearch(q, "sm_record_*").Size(0).Aggregation("NetEarn", netEarnAgg).Aggregation("PlayTimes", playTimesAgg).Do(context.Background())
 		errorlog.CheckErr(err)
 
 		NetEarnResult, _ := result.Aggregations["NetEarn"].MarshalJSON()

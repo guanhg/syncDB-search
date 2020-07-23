@@ -6,7 +6,7 @@ import (
 	"github/guanhg/syncDB-search/module"
 )
 
-var mod = flag.String("m", "", "(module)需要调用的执行模块: init/delete/rebuild/mapping/db2mq/es4mq/web")
+var mod = flag.String("m", "web", "(module)需要调用的执行模块: init/delete/rebuild/mapping/db2mq/es4mq/web")
 var tb = flag.String("t", "", "(table name)表名，init/delete/rebuild/mapping模块必须要的参数")
 var db = flag.String("d", "", "(database name)数据库名，init/delete/rebuild/mapping模块必须要的参数")
 var reg = flag.String("r", ".*\\..*", "(regex)canal获取表的同步数据，canal2mq模块必须要的参数")

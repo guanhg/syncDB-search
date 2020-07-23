@@ -32,7 +32,7 @@ func testAggregation(){
 	sumAgg := elastic.NewSumAggregation().Field("weight")
 	disAgg := elastic.NewTermsAggregation().Field("medium_id").SubAggregation("weight", sumAgg).Size(50).OrderByAggregation("weight", false)
 
-	search := schema.Search(q, "sm_record_*")
+	search := schema.NewSearch(q, "sm_record_*")
 	search.Size(0).Aggregation("track", disAgg)
 	res, _ := search.Do(context.Background())
 	aggResult, _ := res.Aggregations["track"].MarshalJSON()
@@ -44,9 +44,9 @@ func testAggregation(){
 }
 
 func testSearch(){
-	q := elastic.NewRangeQuery("created_datetime").From("2019-01-01").To("2019-06-01").Boost(3).Relation("within")
-	search := schema.Search(q, "sm")
-	search.Size(2).From(1)
+	q := elastic.NewMatchQuery("name", "小提琴")
+	search := schema.NewSearch(q, "tag")
+	//search.Size(2).From(1)
 	res := search.Result()
 	fmt.Println(res)
 }

@@ -38,7 +38,6 @@ func TopTrackHandle(c *gin.Context){
 	}
 	from := (pageIdx-1)*pageSize
 
-
 	stmt := "select id from sm where created_datetime > ? and created_datetime < ?"
 	ctx := cache.GetDefaultContext()
 	rows, err := ctx.Query(stmt, startDate, endDate)
@@ -62,7 +61,7 @@ func TopTrackHandle(c *gin.Context){
 		disAgg := elastic.NewTermsAggregation().Field("medium_id").SubAggregation("weight", sumAgg).Size(TopSize).OrderByAggregation("weight", false)
 
 		// size=0意味着不索引Doc，只做聚合计算
-		result, err := schema.Search(q, "sm_record_*").Size(0).Aggregation("TopTrack", disAgg).Do(context.Background())
+		result, err := schema.NewSearch(q, "sm_record_*").Size(0).Aggregation("TopTrack", disAgg).Do(context.Background())
 		errorlog.CheckErr(err)
 		aggResult, _ := result.Aggregations["TopTrack"].MarshalJSON()
 
