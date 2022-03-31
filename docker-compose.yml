@@ -6,8 +6,8 @@ services:
     privileged: true
     container_name: elastic-test
     ports:
-      - 19200:9200
-      - 19300:9300
+      - 9200:9200
+      - 9300:9300
     volumes: # 挂载数据
       - ./config/elastic/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
       - ./data/es-data-test:/usr/share/elasticsearch/data
@@ -22,7 +22,7 @@ services:
     privileged: true
     container_name: mysql-test
     ports:
-      - 3307:3306
+      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: root123456
     networks:
@@ -34,8 +34,8 @@ services:
     privileged: true
     container_name: rabbitmq-test
     ports:
-      - 5673:5672
-      - 15673:15672
+      - 5672:5672
+      - 15672:15672
     networks:
       dev:
         ipv4_address: 172.18.0.22
@@ -45,27 +45,13 @@ services:
     privileged: true
     container_name: canal-test
     volumes:
-      - .config/canal/example/:/home/admin/canal-server/conf/example/   # 本地挂载实例配置
+      - .config/canal/sample/:/home/admin/canal-server/conf/sample/   # 本地挂载实例配置
       - ./canal-server-logs/:/home/admin/canal-server/logs/  # 同步日志(可能需要定时清理)
     networks:
       dev:
         ipv4_address: 172.18.0.23
     depends_on:
       - mysql
-
-  syncDb:
-    image: sync-search
-    privileged: true
-    container_name: syncDb-test
-    volumes:
-      - ./:/search
-    networks:
-      dev:
-        ipv4_address: 172.18.0.24
-    depends_on:
-      - canal
-      - rabbitMq
-      - elastic
 
 networks: # 自定义网络
   dev:

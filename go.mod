@@ -11,6 +11,7 @@ require (
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/olivere/elastic/v7 v7.0.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+	github.com/tidwall/gjson v1.6.0
 	github.com/withlin/canal-go v1.0.7
 	google.golang.org/appengine v1.6.1
 )

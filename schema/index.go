@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/olivere/elastic/v7"
 	"github/guanhg/syncDB-search/cache"
@@ -25,6 +26,9 @@ func (s *SchemaIndex) CreateIndexIfNotExist() error {
 	isExists, _ := ElasticClient.IndexExists(indexName).Do(context.Background())
 	ctx := context.Background()
 	if !isExists {
+		if m, _ := s.GetMaxId(); m <= 0 {
+			return errors.New("have not any data in table [ " + s.Name + " ]")
+		}
 		_, err := ElasticClient.CreateIndex(indexName).Do(ctx)
 		if err!=nil{
 			return err
@@ -115,8 +119,12 @@ func (s *SchemaIndex) IndexAll(nunRoutine int) error {
 	total, _ := s.GetCount()
 	loops := total/pageSize + 1
 
-	_ = s.DeleteIndexIfExist()
-	_ = s.CreateIndexIfNotExist()
+	if e := s.DeleteIndexIfExist(); e!=nil{
+		return e
+	}
+	if e := s.CreateIndexIfNotExist(); e!=nil{
+		return e
+	}
 
 	log.Printf("==========%d===========\n", total)
 	wg := new(sync.WaitGroup)
@@ -147,11 +155,12 @@ func (s *SchemaIndex) Upsert(row map[string]interface{}) error{
 	indexName := s.Name
 	s.CreateIndexIfNotExist()
 
-	r, err := ElasticClient.Update().Index(indexName).Id(row["id"].(string)).DocAsUpsert(true).Doc(row).Do(context.Background())
+	id := fmt.Sprintf("%v", row["id"])
+	r, err := ElasticClient.Update().Index(indexName).Id(id).DocAsUpsert(true).Doc(row).Do(context.Background())
 	if err!=nil {
 		return err
 	}
-	log.Printf("[Upserting Index] Id: %s; Index: %s; Result: %s\n", row["id"], indexName, r.Result)
+	log.Printf("[Upserting Index] Id: %s; Index: %s; Result: %s\n", id, indexName, r.Result)
 	return nil
 }
 
@@ -217,7 +226,10 @@ func (s *SchemaIndex) GetMaxId() (int, error){
 		return 0, err
 	}
 	maxId := rows[0]["max_id"]
-	return strconv.Atoi(maxId.(string))
+	if maxId!=nil{
+		return strconv.Atoi(maxId.(string))
+	}
+	return 0, nil
 }
 
 // 获取表的数据总数

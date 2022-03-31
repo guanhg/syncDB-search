@@ -6,7 +6,10 @@ import (
 	"github.com/withlin/canal-go/client"
 	protocol "github.com/withlin/canal-go/protocol"
 	"github/guanhg/syncDB-search/config"
+	"github/guanhg/syncDB-search/errorlog"
 	"log"
+	"strconv"
+	"time"
 )
 
 /*
@@ -20,24 +23,37 @@ type Canal struct {
 		UserName string
 		Password string
 		Dest string
+		TimeOut int32
+		IdleTimeOut int32
 	}
 
 	CanalConn *client.SimpleCanalConnector
 }
 
-func GetDefaultCanal() *Canal {
+// 获取canal的dest实例
+func GetDestCanal(dest string) *Canal {
 	c := new(Canal)
 
 	cfg := config.JsonConfig
+
+	if dest == "default"{
+		dest = cfg.Canal.DefaultDest
+	}
+	c.Config.Dest = dest
 	c.Config.Uri = cfg.Canal.Uri
 	c.Config.Port = cfg.Canal.Port
 	c.Config.UserName = cfg.Canal.Name
 	c.Config.Password = cfg.Canal.Password
-	c.Config.Dest = cfg.Canal.Dest
+	c.Config.TimeOut = cfg.Canal.SoTO
+	c.Config.IdleTimeOut = cfg.Canal.IdleTO
 
 	c.Connecting()
 
 	return c
+}
+
+func GetDefaultCanal() *Canal {
+	return GetDestCanal("default")
 }
 
 func (c *Canal) Connecting()  {
@@ -47,8 +63,8 @@ func (c *Canal) Connecting()  {
 		c.Config.UserName,
 		c.Config.Password,
 		c.Config.Dest,
-		60000,
-		60*60*1000)
+		c.Config.TimeOut,
+		c.Config.IdleTimeOut)
 	err :=connector.Connect()
 	if err != nil {
 		panic(err)
@@ -126,8 +142,70 @@ func (c *Canal) Get(regex string, size int32) []map[string]interface{} {
 func ConvertColumn(columns []*protocol.Column) map[string]interface{} {
 	row := make(map[string]interface{})
 	for _, col := range columns {
-		row[col.GetName()] = col.GetValue()
+		v := getValueTypeOfSqlType(col.GetValue(), col.GetSqlType())
+		row[col.GetName()] = v
 	}
 	return  row
 }
 
+// 把Canal返回字段的sqlType，转换成go的常用数据类型
+//参考 http://www.docjar.com/html/api/java/sql/Types.java.html
+
+type JDBCSqlType int32
+const (
+	BIT 			JDBCSqlType = -7
+	TINYINT			JDBCSqlType = -6
+	SMALLINT		JDBCSqlType = 5
+	INTEGER			JDBCSqlType = 4
+	BIGINT			JDBCSqlType = -5
+	FLOAT			JDBCSqlType = 7
+	DOUBLE			JDBCSqlType = 8
+	NUMERIC			JDBCSqlType = 2
+	DECIMAL			JDBCSqlType = 3
+	CHAR			JDBCSqlType = 1
+	VARCHAR			JDBCSqlType = 12
+	DATE			JDBCSqlType = 91
+	TIME			JDBCSqlType = 92
+	TIMESTAMP		JDBCSqlType = 93
+	BINARY			JDBCSqlType = -2
+	VARBINARY		JDBCSqlType = -3
+	NULL			JDBCSqlType = 0
+	BOOLEAN			JDBCSqlType = 16
+)
+func getValueTypeOfSqlType(v string, t int32) interface{} {
+	if v == ""{
+		return nil
+	}
+
+	var err error
+	var i interface{}
+	switch JDBCSqlType(t) {
+	case TINYINT:
+		i, err = strconv.ParseInt(v, 10, 8)
+	case SMALLINT:
+		i, err = strconv.ParseInt(v, 10, 8)
+	case INTEGER: // int
+		i, err = strconv.ParseInt(v, 10, 0)
+	case BIGINT: // int64
+		i, err = strconv.ParseInt(v, 10, 64)
+	case FLOAT:
+		i, err = strconv.ParseFloat(v, 32)
+	case DOUBLE:
+		i, err = strconv.ParseFloat(v, 64)
+	case DECIMAL:
+		i, err = strconv.ParseInt(v, 10,64)
+	case DATE:
+		i, err = time.Parse(shortDForm, v)
+	case TIME:
+		i, err = time.Parse(shortDtForm, v)
+	case TIMESTAMP:
+		i, err = time.Parse(shortDtForm, v)
+	case BOOLEAN:
+		i, err = strconv.ParseBool(v)
+	default:
+		return v
+	}
+
+	errorlog.CheckErr(err)
+	return i
+}

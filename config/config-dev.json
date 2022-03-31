@@ -3,28 +3,11 @@
     {
       "drive": "mysql",
       "name": "default",
-      "url": "localhost:3366",
+      "url": "localhost:3306",
       "user": "root",
-      "password": "root123456",
+      "password": "root",
       "db": "statement"
-    },
-    {
-      "drive": "mysql",
-      "name": "copyright",
-      "url": "192.168.0.18:3306",
-      "user": "root",
-      "password": "root",
-      "db": "copyright"
-    },
-    {
-      "drive": "mysql",
-      "name": "coolvox_dev",
-      "url": "192.168.0.11:3306",
-      "user": "root",
-      "password": "root",
-      "db": "coolvox_dev"
     }
-
   ],
 
   "redis": {
@@ -38,7 +21,7 @@
     "name": "canal",
     "password": "canal",
     "port": 11111,
-    "dest": "statement",
+    "default_dest": "statement",
     "so_to": 60000,
     "idle_to": 3600000
   },

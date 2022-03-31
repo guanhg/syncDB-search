@@ -10,12 +10,14 @@ import (
 	"log"
 )
 
-// 多协程同步更新
+type CanalMapData []map[string]interface{}
+
+// 多协程同步更新 canal 数据
 func SyncElastic4Mq(numRoutine int){
 	rqOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "db_index", Queue: "syncIndex"}
 
 	rq := cache.NewMqContext()
-	//rq.DeclareExchangeQueue(rqOptions)
+	rq.DeclareExchangeQueue(rqOptions)
 	_ = rq.Qos(100, 0, true)
 
 	forever := make(chan bool)
@@ -39,7 +41,43 @@ func SyncElastic4Mq(numRoutine int){
 	<- forever
 }
 
+// 不使用mq，而使用chan形式获取canal数据
+func SyncElastic4Chan(numRoutine int, regex string)  {
+	// 声明RabbitMq队列，用于保存处理chan消息失败后的消息
+	rqOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "db_index_dlx", Queue: "syncIndexDlx"}
+	rq := cache.NewMqContext()
+	rq.DeclareExchangeQueue(rqOptions)
+
+	coroutines := make(chan bool, numRoutine)
+	deliveries := make(chan CanalMapData)
+	go SyncCanal2Chan(regex, deliveries)
+
+	for {
+		dataList := <-deliveries   // 阻塞等待
+		coroutines <- true  // 限制创建协程数
+		go func() {
+			defer func() {
+				if e:=recover(); e!=nil {
+					log.Printf("[Consume Error] %s\n", e)
+					for _, row := range dataList {
+						body, _ := json.Marshal(row)
+						_ = rq.Publish(rqOptions.Exchange, rqOptions.RouteKey, false, false, amqp.Publishing{Body: body})
+					}
+				}
+			}()
+
+			for _, row := range dataList {
+				body, _ := json.Marshal(row)
+				msg := amqp.Delivery{Body: body}
+				DoConsume(msg)
+			}
+			<-coroutines
+		}()
+	}
+}
+
 // 消息回调函数
+// 注意，json反序列后数值类型都是float64
 func DoConsume(msg amqp.Delivery)  {
 	rowMap := make(map[string]interface{})
 	err := json.Unmarshal(msg.Body, &rowMap)
@@ -53,7 +91,7 @@ func DoConsume(msg amqp.Delivery)  {
 	table := schema.SchemaIndex{Name: rowMap["table"].(string), Context: cache.GetContext("default")}
 	if event == 3 {  //删除记录
 		data := rowMap["data"].(map[string]interface{})
-		err = table.Delete(data["id"].(string))
+		err = table.Delete(fmt.Sprintf("%v", data["id"]))
 	}else if event == 2 || event == 1 {  // 插入或更新
 		data := rowMap["data"].(map[string]interface{})
 		err = table.Upsert(data)

@@ -5,23 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/olivere/elastic/v7"
-	"github/guanhg/syncDB-search/cache"
-	"github/guanhg/syncDB-search/errorlog"
 	schema "github/guanhg/syncDB-search/schema"
 )
 
 func main() {
 
 	// sm
-	table := schema.SchemaIndex{Name: "sm_record_2017", Context: cache.GetContext("default")}
-	err :=table.CreateIndexIfNotExist()
-	errorlog.CheckErr(err)
-	table.IndexOne(1)
+	//table := schema.SchemaIndex{Name: "sm_record_2017", Context: cache.GetContext("default")}
+	//err :=table.CreateIndexIfNotExist()
+	//errorlog.CheckErr(err)
+	//table.IndexOne(1)
 	//fmt.Println(table.BuildFieldMapping())
 
 	// search
-	//testSearch()
-	//testAggregation()
+	testSearch()
+	//testAggregation2()
 }
 
 func testAggregation(){
@@ -43,11 +41,30 @@ func testAggregation(){
 	fmt.Println(aggTrack)
 }
 
+func testAggregation2(){
+	q := elastic.NewBoolQuery()
+	q.Must(elastic.NewRangeQuery("id").Lte(53))
+
+	sumAgg := elastic.NewSumAggregation().Field("weight")
+
+	search := schema.NewSearch(q, "sm_record_2017")
+	search.Size(10).Aggregation("s", sumAgg)
+	res, _ := search.Do(context.Background())
+	aggResult, _ := res.Aggregations["s"].MarshalJSON()
+
+	aggTrack := make(map[string]interface{})
+	json.Unmarshal(aggResult, &aggTrack)
+
+	fmt.Println(aggTrack)
+}
+
 func testSearch(){
-	q := elastic.NewMatchQuery("name", "小提琴")
-	search := schema.NewSearch(q, "tag")
+	q := elastic.NewRangeQuery("id").Gte(50).Lte(55)
+	search := schema.NewSearch(q, "sm_record_2017")
 	//search.Size(2).From(1)
 	res := search.Result()
-	fmt.Println(res)
+	hits := res["items"].([]interface{})
+	hit := hits[0].(map[string]interface{})
+	fmt.Println(res, hit)
 }
 

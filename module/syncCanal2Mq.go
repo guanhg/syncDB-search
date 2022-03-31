@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-func SyncCanal2Mq(regex string) {
+func SyncCanal2Mq(dest, regex string) {
 	defer func() {
 		if e:=recover(); e!=nil{
 			log.Printf("[Publishing Error] Routine %v\n", e)
 		}
 	}()
 
-	canal := cache.GetDefaultCanal()
+	canal := cache.GetDestCanal(dest)
 	rq := cache.NewMqContext()
 	log.Printf("=======[Start Sync DB]======\n")
 	rqDeadOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "db_index_dlx", Queue: "syncIndexDlx"}
@@ -43,4 +43,25 @@ func SyncCanal2Mq(regex string) {
 			errorlog.CheckErr(err)
 		}
 	}
+}
+
+// 同步canal数据到chan
+func SyncCanal2Chan(regex string, ch chan CanalMapData) {
+	defer func() {
+		if e:=recover(); e!=nil{
+			log.Printf("[Publishing Error] Routine %v\n", e)
+		}
+	}()
+
+	canal := cache.GetDefaultCanal()
+
+	for {
+		rows := canal.Get(regex, 100)
+		if len(rows) <= 0 {
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		ch <- rows
+	}
+
 }

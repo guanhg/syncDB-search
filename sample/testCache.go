@@ -12,8 +12,9 @@ import (
 )
 
 func main() {
-	testDB()
+	//testDB()
 	//testRedis()
+	testCanal()
 
 	//forever := make(chan bool)
 	//go testCanal()
@@ -24,8 +25,7 @@ func main() {
 func testDB()  {
 	ctx := cache.GetContext("default")
 	defer ctx.Close()
-	rows, _ := ctx.Query("select * from sm_record_2018 where id=?", 1)
-
+	rows, _ := ctx.Query("select * from sm where id=?", 6)
 	for _, row :=range rows{
 		for k, v := range row{
 			s := fmt.Sprintf("%20s:%20v", k, v)
@@ -42,7 +42,7 @@ func testCanal()  {
 	rq.DeclareExchangeQueue(rqOptions)
 
 	for  {
-		rows := canal.Get(".*\\..*", 2)
+		rows := canal.Get("statement\\..*", 2)
 		if len(rows) <= 0 {
 			time.Sleep(1 * time.Second)
 			continue

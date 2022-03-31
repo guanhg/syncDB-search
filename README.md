@@ -33,9 +33,9 @@
 
 ```
 如 初始化|删除|重构|mapping 数据库statement的表track索引
-go run search.go -m init|delete|rebuild|mapping -t track -d statement
+go run search.go -m init|delete|rebuild|mapping -t table_name -d db_name
 如 同步数据statement中所有表更新数据到mq
-go run search.go -m db2mq -r "statement\\..*"
+go run search.go -m db2mq -r "example\\..*"
 如 10个协程同步mq数据到es
 go run search.go -m es4mq -n 10
 如 启动search web应用,端口8080

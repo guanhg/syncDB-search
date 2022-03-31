@@ -6,6 +6,7 @@ import (
 
 var (
 	ParameterError = errors.New(" [ParameterError] ")
+	CanalSqlTypeError = errors.New(" [CanalSqlTypeError] ")
 )
 
 func CheckErr(err error, msg ...string)  {
