@@ -4,63 +4,53 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/streadway/amqp"
 	"github/guanhg/syncDB-search/cache"
 	"github/guanhg/syncDB-search/errorlog"
 	"reflect"
 	"time"
+
+	"github.com/streadway/amqp"
 )
 
-func main() {
-	//testDB()
-	//testRedis()
-	testCanal()
-
-	//forever := make(chan bool)
-	//go testCanal()
-	//testMq()
-	//<- forever
-}
-
-func testDB()  {
+func testDB() {
 	ctx := cache.GetContext("default")
 	defer ctx.Close()
 	rows, _ := ctx.Query("select * from sm where id=?", 6)
-	for _, row :=range rows{
-		for k, v := range row{
+	for _, row := range rows {
+		for k, v := range row {
 			s := fmt.Sprintf("%20s:%20v", k, v)
 			fmt.Println(s, "->", reflect.TypeOf(v))
 		}
 	}
 }
 
-func testCanal()  {
+func testCanal() {
 	canal := cache.GetDefaultCanal()
 	fmt.Println("=======[Start]=====")
 	rqOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "statement", Queue: "sm"}
 	rq := cache.NewMqContext()
 	rq.DeclareExchangeQueue(rqOptions)
 
-	for  {
+	for {
 		rows := canal.Get("statement\\..*", 2)
 		if len(rows) <= 0 {
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		for i :=range rows{  // 发送到mq
+		for i := range rows { // 发送到mq
 			fmt.Println("================")
 			fmt.Println(rows[i])
 
 			body, _ := json.Marshal(rows[i])
 			err := rq.Publish(rqOptions.Exchange, rqOptions.RouteKey, false, false, amqp.Publishing{Body: body})
-			if err!= nil {
+			if err != nil {
 				panic(err)
 			}
 		}
 	}
 }
 
-func testMq()  {
+func testMq() {
 
 	rq := cache.NewMqContext()
 	rqOptions := cache.MqOptions{Exchange: "db_sync", ExchangeType: "topic", RouteKey: "statement", Queue: "sm"}
@@ -78,18 +68,15 @@ func testMq()  {
 
 }
 
-func testRedis()  {
+func testRedis() {
 	ctx := context.Background()
 	rd := cache.GetDefaultRedis()
 
 	key := "goRedis"
 	rd.Set(ctx, key, "example", 10*time.Second)
 	val, err := rd.Get(ctx, key).Result()
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
 	fmt.Println("-----> Redis-Get: ", key, val)
 }
-
-
-

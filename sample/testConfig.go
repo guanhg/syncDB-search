@@ -5,7 +5,7 @@ import (
 	"github/guanhg/syncDB-search/config"
 )
 
-func main() {
+func testConfig() {
 	cfg := config.LoadJsonFileConfig()
 
 	fmt.Println(cfg)
